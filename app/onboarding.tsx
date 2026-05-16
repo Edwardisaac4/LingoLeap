@@ -86,7 +86,7 @@ export default function OnboardingScreen() {
         <TouchableOpacity
           style={styles.ctaButton}
           activeOpacity={0.85}
-          onPress={() => router.back()} // TODO: router.push("/(auth)/sign-in") once auth is built
+          onPress={() => router.push("/(auth)/sign-up")}
         >
           <Text className="font-semibold text-[17px] text-background">
             Get Started
