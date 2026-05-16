@@ -6,33 +6,123 @@ import {
   TextInput,
   StyleSheet,
   ScrollView,
+  ActivityIndicator,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { useState } from "react";
+import { useSignUp } from "@clerk/expo/legacy";
 import { images } from "@/constants/images";
 import { colors } from "@/theme";
 import { VerificationModal } from "@/components/VerificationModal";
+import { useOAuthFlow } from "@/hooks/useOAuthFlow";
 
 // ─── Sign Up Screen ────────────────────────────────────────────────────────────
 
 export default function SignUpScreen() {
   const router = useRouter();
+  const { signUp, setActive, isLoaded } = useSignUp();
+  const { startFlow } = useOAuthFlow();
+
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [emailFocused, setEmailFocused] = useState(false);
   const [passwordFocused, setPasswordFocused] = useState(false);
   const [modalVisible, setModalVisible] = useState(false);
+  const [verifyError, setVerifyError] = useState<string | undefined>();
+  const [loading, setLoading] = useState(false);
+  const [verifyLoading, setVerifyLoading] = useState(false);
+  const [resendStatus, setResendStatus] = useState<string | undefined>();
+  const [oauthLoading, setOauthLoading] = useState<string | null>(null);
 
-  function handleSignUp() {
-    setModalVisible(true);
+  // ── Step 1: Create account and send email verification code ────────────────
+
+  async function handleSignUp() {
+    if (!isLoaded || !signUp) return;
+    setLoading(true);
+    setVerifyError(undefined);
+    try {
+      // Clerk v3: signUp.create() returns SignUpResource directly and throws on error
+      await signUp.create({ emailAddress: email, password });
+
+      // Explicitly trigger the email verification code
+      await signUp.prepareEmailAddressVerification({ strategy: "email_code" });
+
+      // Both calls succeeded — show the verification modal
+      setModalVisible(true);
+    } catch (err: unknown) {
+      const clerkErr = err as { errors?: { longMessage?: string; message?: string }[] };
+      const msg =
+        clerkErr.errors?.[0]?.longMessage ??
+        clerkErr.errors?.[0]?.message ??
+        "Sign-up failed. Please try again.";
+      alert(msg);
+    } finally {
+      setLoading(false);
+    }
   }
 
-  function handleVerified() {
-    setModalVisible(false);
-    router.replace("/home");
+  // ── Step 2: Verify the 6-digit code ───────────────────────────────────────
+
+  async function handleVerified(code: string) {
+    if (!isLoaded || !signUp) return;
+    if (verifyLoading) return;
+    setVerifyLoading(true);
+    setVerifyError(undefined);
+    try {
+      // Clerk v3: returns SignUpResource directly, throws on error
+      const result = await signUp.attemptEmailAddressVerification({ code });
+
+      if (result.status === "complete") {
+        await setActive!({ session: result.createdSessionId });
+        setModalVisible(false);
+        router.replace("/home");
+      } else {
+        console.error("Sign-up not complete after verification:", result.status, result.missingFields);
+        setVerifyError(`Incomplete (${result.status}). Missing: ${result.missingFields?.join(', ')}`);
+      }
+    } catch (err: unknown) {
+      console.error("Verification error:", JSON.stringify(err, null, 2));
+      const clerkErr = err as { errors?: { message?: string }[] };
+      setVerifyError(
+        clerkErr.errors?.[0]?.message ?? "Invalid code. Please try again.",
+      );
+    } finally {
+      setVerifyLoading(false);
+    }
+  }
+
+  // ── Resend code ────────────────────────────────────────────────────────────
+
+  async function handleResend() {
+    if (!isLoaded || !signUp) return;
+    setResendStatus(undefined);
+    try {
+      // Clerk v3: throws on error
+      await signUp.prepareEmailAddressVerification({ strategy: "email_code" });
+      setResendStatus("Code resent! Check your inbox.");
+    } catch (err: unknown) {
+      console.error("Resend error:", err);
+      const clerkErr = err as { errors?: { longMessage?: string; message?: string }[] };
+      const msg =
+        clerkErr.errors?.[0]?.longMessage ??
+        clerkErr.errors?.[0]?.message ??
+        "Failed to resend code. Please try again.";
+      setResendStatus(`Error: ${msg}`);
+    }
+  }
+
+  // ── OAuth sign-up ──────────────────────────────────────────────────────────
+
+  async function handleOAuth(strategy: "oauth_google" | "oauth_apple" | "oauth_facebook") {
+    setOauthLoading(strategy);
+    try {
+      await startFlow(strategy);
+    } finally {
+      setOauthLoading(null);
+    }
   }
 
   return (
@@ -75,8 +165,7 @@ export default function SignUpScreen() {
         {/* ── Form ─────────────────────────────────────────────────────── */}
         <View className="px-6 gap-3">
 
-          {/* Email field — plain View base uses NativeWind;
-              focused border is dynamic so uses inline style (AGENTS.md: Dynamic styles) */}
+          {/* Email field */}
           <View
             className="border-[1.5px] border-border rounded-[14px] px-4 py-[10px] bg-background"
             style={emailFocused ? { borderColor: colors.linguaPurple } : undefined}
@@ -133,74 +222,108 @@ export default function SignUpScreen() {
 
           {/* Sign Up button — TouchableOpacity style: AGENTS.md exception */}
           <TouchableOpacity
-            style={styles.primaryBtn}
+            style={[
+              styles.primaryBtn,
+              (!email || !password || loading) && styles.primaryBtnDisabled,
+            ]}
             activeOpacity={0.85}
             onPress={handleSignUp}
+            disabled={!email || !password || loading}
           >
-            <Text className="font-semibold text-[16px] text-white">Sign Up</Text>
+            {loading ? (
+              <ActivityIndicator size="small" color="#fff" />
+            ) : (
+              <Text className="font-semibold text-[16px] text-white">Sign Up</Text>
+            )}
           </TouchableOpacity>
         </View>
 
-        {/* ── Divider — plain Views + Text: NativeWind ─────────────────── */}
+        {/* ── Divider ──────────────────────────────────────────────────── */}
         <View className="flex-row items-center mx-6 my-5 gap-[10px]">
           <View className="flex-1 h-px bg-border" />
-          <Text className="font-sans text-[13px] text-text-secondary">or continue with</Text>
+          <Text className="font-sans text-body-sm text-text-secondary">or continue with</Text>
           <View className="flex-1 h-px bg-border" />
         </View>
 
         {/* ── Social buttons — TouchableOpacity style: AGENTS.md exception */}
         <View className="px-6 gap-3">
-          <TouchableOpacity style={styles.socialBtn} activeOpacity={0.8}>
-            <Text className="font-bold text-[18px] text-[#4285F4] w-[22px] text-center">G</Text>
-            <Text className="font-medium text-[14px] text-text-primary">Continue with Google</Text>
+          <TouchableOpacity
+            style={styles.socialBtn}
+            activeOpacity={0.8}
+            onPress={() => handleOAuth("oauth_google")}
+            disabled={oauthLoading !== null}
+          >
+            {oauthLoading === "oauth_google" ? (
+              <ActivityIndicator size="small" color={colors.textPrimary} style={{ width: 22 }} />
+            ) : (
+              <Text className="font-bold text-[18px] text-[#4285F4] w-[22px] text-center">G</Text>
+            )}
+            <Text className="font-medium text-body-md text-text-primary">Continue with Google</Text>
           </TouchableOpacity>
 
-          <TouchableOpacity style={styles.socialBtn} activeOpacity={0.8}>
-            <View className="w-[22px] h-[22px] rounded-full bg-[#1877F2] items-center justify-center">
-              <Text className="font-bold text-[14px] text-white leading-[22px]">f</Text>
-            </View>
-            <Text className="font-medium text-[14px] text-text-primary">Continue with Facebook</Text>
+          <TouchableOpacity
+            style={styles.socialBtn}
+            activeOpacity={0.8}
+            onPress={() => handleOAuth("oauth_facebook")}
+            disabled={oauthLoading !== null}
+          >
+            {oauthLoading === "oauth_facebook" ? (
+              <ActivityIndicator size="small" color={colors.textPrimary} style={{ width: 22 }} />
+            ) : (
+              <View className="w-[22px] h-[22px] rounded-full bg-[#1877F2] items-center justify-center">
+                <Text className="font-bold text-body-md text-white leading-[22px]">f</Text>
+              </View>
+            )}
+            <Text className="font-medium text-body-md text-text-primary">Continue with Facebook</Text>
           </TouchableOpacity>
 
-          <TouchableOpacity style={styles.socialBtn} activeOpacity={0.8}>
-            <Ionicons name="logo-apple" size={22} color="#000" />
-            <Text className="font-medium text-[14px] text-text-primary">Continue with Apple</Text>
+          <TouchableOpacity
+            style={styles.socialBtn}
+            activeOpacity={0.8}
+            onPress={() => handleOAuth("oauth_apple")}
+            disabled={oauthLoading !== null}
+          >
+            {oauthLoading === "oauth_apple" ? (
+              <ActivityIndicator size="small" color={colors.textPrimary} style={{ width: 22 }} />
+            ) : (
+              <Ionicons name="logo-apple" size={22} color="#000" />
+            )}
+            <Text className="font-medium text-body-md text-text-primary">Continue with Apple</Text>
           </TouchableOpacity>
         </View>
 
-        {/* ── Footer link — plain View + Text: NativeWind ──────────────── */}
+        {/* ── Footer link ───────────────────────────────────────────────── */}
         <View className="flex-row justify-center items-center mt-7">
-          <Text className="font-sans text-[14px] text-text-secondary">
+          <Text className="font-sans text-body-md text-text-secondary">
             Already have an account?{" "}
           </Text>
-          {/* TouchableOpacity without a style prop — no exception needed */}
           <TouchableOpacity onPress={() => router.replace("/(auth)/sign-in")} activeOpacity={0.7}>
-            <Text className="font-semibold text-[14px] text-lingua-purple">Log in</Text>
+            <Text className="font-semibold text-body-md text-lingua-purple">Log in</Text>
           </TouchableOpacity>
         </View>
       </ScrollView>
 
-      {/* ── Verification modal ───────────────────────────────────────────── */}
+      {/* ── Verification modal ──────────────────────────────────────────── */}
       <VerificationModal
         visible={modalVisible}
         onClose={() => setModalVisible(false)}
         onVerified={handleVerified}
-        subtitle={"We sent a 6-digit verification code to your email.\nEnter it below."}
+        onResend={handleResend}
+        subtitle={resendStatus ?? "We sent a 6-digit verification code to your email.\nEnter it below."}
+        error={verifyError}
+        isLoading={verifyLoading}
       />
     </SafeAreaView>
   );
 }
 
 // ─── StyleSheet — only for AGENTS.md-mandated exceptions ────────────────────
-// ScrollView contentContainerStyle, TouchableOpacity style, TextInput style
 
 const styles = StyleSheet.create({
-  // ScrollView contentContainerStyle — AGENTS.md exception
   scrollContent: {
     flexGrow: 1,
     paddingBottom: 40,
   },
-  // TouchableOpacity style — AGENTS.md exception
   backBtn: {
     marginHorizontal: 16,
     marginTop: 8,
@@ -210,7 +333,6 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
-  // TextInput style — AGENTS.md exception
   textInput: {
     fontFamily: "Poppins_400Regular",
     fontSize: 15,
@@ -218,11 +340,9 @@ const styles = StyleSheet.create({
     padding: 0,
     margin: 0,
   },
-  // TouchableOpacity style — AGENTS.md exception
   eyeBtn: {
     paddingLeft: 8,
   },
-  // TouchableOpacity style — AGENTS.md exception
   primaryBtn: {
     backgroundColor: colors.linguaPurple,
     borderRadius: 16,
@@ -230,7 +350,9 @@ const styles = StyleSheet.create({
     alignItems: "center",
     marginTop: 4,
   },
-  // TouchableOpacity style — AGENTS.md exception
+  primaryBtnDisabled: {
+    opacity: 0.55,
+  },
   socialBtn: {
     flexDirection: "row",
     alignItems: "center",
