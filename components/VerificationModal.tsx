@@ -17,9 +17,13 @@ import { colors } from "@/theme";
 export interface VerificationModalProps {
   visible: boolean;
   onClose: () => void;
-  onVerified: () => void;
+  onVerified: (code: string) => void;
+  onResend?: () => void;
   title?: string;
   subtitle?: string;
+  error?: string;
+  /** When true the submit auto-trigger and the Resend button are disabled */
+  isLoading?: boolean;
 }
 
 // ─── Component ─────────────────────────────────────────────────────────────────
@@ -28,8 +32,11 @@ export function VerificationModal({
   visible,
   onClose,
   onVerified,
+  onResend,
   title = "Check your email",
   subtitle = "We sent a 6-digit verification code to your email.\nEnter it below.",
+  error,
+  isLoading = false,
 }: VerificationModalProps) {
   const [code, setCode] = useState<string[]>(["", "", "", "", "", ""]);
   const inputs = useRef<(TextInput | null)[]>([]);
@@ -47,10 +54,10 @@ export function VerificationModal({
     // Auto-navigate when all 6 digits are filled
     if (digit && index === 5) {
       const full = [...next].join("");
-      if (full.length === 6) {
+      if (full.length === 6 && !isLoading) {
         setTimeout(() => {
           setCode(["", "", "", "", "", ""]);
-          onVerified();
+          onVerified(full);
         }, 200);
       }
     }
@@ -91,6 +98,11 @@ export function VerificationModal({
             {subtitle}
           </Text>
 
+          {/* Error message — only shown when error prop is provided */}
+          {error ? (
+            <Text className="font-sans text-body-sm text-[#E53E3E] mb-3 text-center">{error}</Text>
+          ) : null}
+
           {/* Code inputs row — plain View, use NativeWind */}
           <View className="flex-row gap-[10px] justify-center mb-6">
             {code.map((digit, i) => (
@@ -111,10 +123,15 @@ export function VerificationModal({
           </View>
 
           {/* Resend — TouchableOpacity style must use StyleSheet (AGENTS.md exception) */}
-          <TouchableOpacity activeOpacity={0.7} style={styles.resendRow}>
+          <TouchableOpacity
+            activeOpacity={0.7}
+            style={styles.resendRow}
+            onPress={onResend}
+            disabled={isLoading}
+          >
             <Text className="font-sans text-body-md text-text-secondary">
-              Didn't receive it?{" "}
-              <Text className="font-semibold text-lingua-purple">Resend code</Text>
+              Didn&apos;t receive it?{" "}
+              <Text className={`font-semibold ${isLoading ? "text-text-secondary" : "text-lingua-purple"}`}>Resend code</Text>
             </Text>
           </TouchableOpacity>
         </View>

@@ -13,6 +13,24 @@
       "skillPath": "plugins/expo/skills/building-native-ui/SKILL.md",
       "computedHash": "a0316d2ce842d2dd8067a144e339cf502329dc7701f9f5122268fdb3d4c980f7"
     },
+    "clerk-android": {
+      "source": "clerk/skills",
+      "sourceType": "github",
+      "skillPath": "skills/mobile/clerk-android/SKILL.md",
+      "computedHash": "89bbd90683b00472ba781d293b34520a7891bf9ff3b7724bb9a5fbde8dce1ae9"
+    },
+    "clerk-swift": {
+      "source": "clerk/skills",
+      "sourceType": "github",
+      "skillPath": "skills/mobile/clerk-swift/SKILL.md",
+      "computedHash": "f818efacdbddc5398fb569f1ebc0ff98b33d4456fb406ce8da70b359fad80ac9"
+    },
+    "clerk-webhooks": {
+      "source": "clerk/skills",
+      "sourceType": "github",
+      "skillPath": "skills/features/clerk-webhooks/SKILL.md",
+      "computedHash": "4764eeeef1e80ce9757759ef119a3a5e77322383e8a37975d7c8ea718c259ec9"
+    },
     "eas-update-insights": {
       "source": "expo/skills",
       "sourceType": "github",
