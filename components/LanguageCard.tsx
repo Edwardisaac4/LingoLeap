@@ -18,7 +18,7 @@ export function LanguageCard({ language, selected, onPress }: LanguageCardProps)
         styles.card,
         selected ? styles.selectedCard : styles.unselectedCard,
       ]}
-      className="flex-row items-center p-4 mb-3 rounded-2xl border-[2px]"
+      className="flex-row items-center p-4 mb-3 rounded-2xl border-2"
     >
       {/* ── Flag Image ── */}
       <Image
@@ -33,7 +33,7 @@ export function LanguageCard({ language, selected, onPress }: LanguageCardProps)
         <Text className="font-bold text-[17px] text-text-primary">
           {language.name}
         </Text>
-        <Text className="font-sans text-[13px] text-text-secondary mt-0.5">
+        <Text className="font-sans text-body-sm text-text-secondary mt-0.5">
           {language.nativeName}
         </Text>
       </View>

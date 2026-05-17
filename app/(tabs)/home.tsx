@@ -5,6 +5,7 @@ import { useAuth } from "@clerk/expo";
 import { useRouter } from "expo-router";
 import { useLanguageStore } from "@/store/languageStore";
 import { languages } from "@/data/languages";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 export default function HomeScreen() {
   const { signOut } = useAuth();
@@ -46,6 +47,23 @@ export default function HomeScreen() {
           style={styles.signOutButton}
         >
           <Text style={styles.signOutText}>Sign Out</Text>
+        </TouchableOpacity>
+        
+        <TouchableOpacity
+          activeOpacity={0.8}
+          onPress={async () => {
+            try {
+              await signOut();
+            } catch (err) {
+              console.error("Failed to sign out during clear storage:", err);
+            }
+            await AsyncStorage.clear();
+            useLanguageStore.getState().setSelectedLanguage(null);
+            router.replace("/onboarding");
+          }}
+          style={[styles.signOutButton, { backgroundColor: colors.error, shadowColor: colors.error }]}
+        >
+          <Text style={styles.signOutText}>Clear Storage (Test)</Text>
         </TouchableOpacity>
       </View>
     </SafeAreaView>

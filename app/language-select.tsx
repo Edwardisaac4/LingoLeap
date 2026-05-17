@@ -1,8 +1,9 @@
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image } from "react-native";
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, Alert } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { useState } from "react";
+import { useAuth } from "@clerk/expo";
 import { colors } from "@/theme";
 import { languages } from "@/data/languages";
 import { LanguageCard } from "@/components/LanguageCard";
@@ -11,12 +12,30 @@ import { useLanguageStore } from "@/store/languageStore";
 
 export default function LanguageSelectScreen() {
   const router = useRouter();
+  const { signOut } = useAuth();
   const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
   const handleContinue = () => {
     if (selectedId) {
       useLanguageStore.getState().setSelectedLanguage(selectedId);
       router.replace("/home");
+    }
+  };
+
+  const handleBack = async () => {
+    setError(null);
+    if (router.canGoBack()) {
+      router.back();
+    } else {
+      try {
+        await signOut();
+        router.replace("/sign-in");
+      } catch (err) {
+        console.error("Failed to sign out on back button:", err);
+        setError("Failed to sign out. Please try again.");
+        Alert.alert("Error", "Failed to sign out. Please try again.");
+      }
     }
   };
 
@@ -26,7 +45,7 @@ export default function LanguageSelectScreen() {
       <View className="flex-row items-center px-4 py-3">
         <TouchableOpacity
           style={styles.backBtn}
-          onPress={() => router.back()}
+          onPress={handleBack}
           activeOpacity={0.7}
         >
           <Ionicons name="chevron-back" size={24} color={colors.textPrimary} />
@@ -35,6 +54,16 @@ export default function LanguageSelectScreen() {
           Language
         </Text>
       </View>
+
+      {/* ── Error Banner ── */}
+      {error && (
+        <View className="mx-6 mb-4 p-3 bg-[#FFF5F5] border border-[#FED7D7] rounded-xl flex-row items-center gap-2">
+          <Ionicons name="alert-circle" size={20} color="#E53E3E" />
+          <Text className="font-sans text-body-sm text-[#E53E3E] flex-1">
+            {error}
+          </Text>
+        </View>
+      )}
 
       {/* ── Progress/Step Indicator ── */}
       <View className="px-6 mb-6">

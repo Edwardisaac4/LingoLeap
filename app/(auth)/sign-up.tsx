@@ -27,9 +27,15 @@ export default function SignUpScreen() {
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [username, setUsername] = useState("");
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [emailFocused, setEmailFocused] = useState(false);
   const [passwordFocused, setPasswordFocused] = useState(false);
+  const [usernameFocused, setUsernameFocused] = useState(false);
+  const [firstNameFocused, setFirstNameFocused] = useState(false);
+  const [lastNameFocused, setLastNameFocused] = useState(false);
   const [modalVisible, setModalVisible] = useState(false);
   const [verifyError, setVerifyError] = useState<string | undefined>();
   const [loading, setLoading] = useState(false);
@@ -45,7 +51,13 @@ export default function SignUpScreen() {
     setVerifyError(undefined);
     try {
       // Clerk v3: signUp.create() returns SignUpResource directly and throws on error
-      await signUp.create({ emailAddress: email, password });
+      await signUp.create({
+        emailAddress: email,
+        password,
+        username,
+        firstName,
+        lastName,
+      });
 
       // Explicitly trigger the email verification code
       await signUp.prepareEmailAddressVerification({ strategy: "email_code" });
@@ -165,6 +177,62 @@ export default function SignUpScreen() {
         {/* ── Form ─────────────────────────────────────────────────────── */}
         <View className="px-6 gap-3">
 
+          {/* First Name & Last Name row */}
+          <View className="flex-row gap-3">
+            <View
+              className="flex-1 border-[1.5px] border-border rounded-[14px] px-4 py-[10px] bg-background"
+              style={firstNameFocused ? { borderColor: colors.linguaPurple } : undefined}
+            >
+              <Text className="font-sans text-[12px] text-text-secondary mb-0.5">First Name</Text>
+              <TextInput
+                style={styles.textInput}
+                placeholder="Alex"
+                placeholderTextColor={colors.textSecondary}
+                value={firstName}
+                onChangeText={setFirstName}
+                onFocus={() => setFirstNameFocused(true)}
+                onBlur={() => setFirstNameFocused(false)}
+                underlineColorAndroid="transparent"
+              />
+            </View>
+
+            <View
+              className="flex-1 border-[1.5px] border-border rounded-[14px] px-4 py-[10px] bg-background"
+              style={lastNameFocused ? { borderColor: colors.linguaPurple } : undefined}
+            >
+              <Text className="font-sans text-[12px] text-text-secondary mb-0.5">Last Name</Text>
+              <TextInput
+                style={styles.textInput}
+                placeholder="Smith"
+                placeholderTextColor={colors.textSecondary}
+                value={lastName}
+                onChangeText={setLastName}
+                onFocus={() => setLastNameFocused(true)}
+                onBlur={() => setLastNameFocused(false)}
+                underlineColorAndroid="transparent"
+              />
+            </View>
+          </View>
+
+          {/* Username field */}
+          <View
+            className="border-[1.5px] border-border rounded-[14px] px-4 py-[10px] bg-background"
+            style={usernameFocused ? { borderColor: colors.linguaPurple } : undefined}
+          >
+            <Text className="font-sans text-[12px] text-text-secondary mb-0.5">Username</Text>
+            <TextInput
+              style={styles.textInput}
+              placeholder="alexsmith"
+              placeholderTextColor={colors.textSecondary}
+              autoCapitalize="none"
+              value={username}
+              onChangeText={setUsername}
+              onFocus={() => setUsernameFocused(true)}
+              onBlur={() => setUsernameFocused(false)}
+              underlineColorAndroid="transparent"
+            />
+          </View>
+
           {/* Email field */}
           <View
             className="border-[1.5px] border-border rounded-[14px] px-4 py-[10px] bg-background"
@@ -224,11 +292,11 @@ export default function SignUpScreen() {
           <TouchableOpacity
             style={[
               styles.primaryBtn,
-              (!email || !password || loading) && styles.primaryBtnDisabled,
+              (!email || !password || !username || !firstName || !lastName || loading) && styles.primaryBtnDisabled,
             ]}
             activeOpacity={0.85}
             onPress={handleSignUp}
-            disabled={!email || !password || loading}
+            disabled={!email || !password || !username || !firstName || !lastName || loading}
           >
             {loading ? (
               <ActivityIndicator size="small" color="#fff" />
@@ -297,7 +365,7 @@ export default function SignUpScreen() {
           <Text className="font-sans text-body-md text-text-secondary">
             Already have an account?{" "}
           </Text>
-          <TouchableOpacity onPress={() => router.replace("/(auth)/sign-in")} activeOpacity={0.7}>
+          <TouchableOpacity onPress={() => router.push("/(auth)/sign-in")} activeOpacity={0.7}>
             <Text className="font-semibold text-body-md text-lingua-purple">Log in</Text>
           </TouchableOpacity>
         </View>

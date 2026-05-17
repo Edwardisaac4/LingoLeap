@@ -155,18 +155,17 @@ export default function SignInScreen() {
         {/* ── Form ─────────────────────────────────────────────────────── */}
         <View className="px-6 gap-3">
 
-          {/* Email field */}
+          {/* Email or Username field */}
           <View
             className="border-[1.5px] border-border rounded-[14px] px-4 py-[10px] bg-background"
             style={emailFocused ? { borderColor: colors.linguaPurple } : undefined}
           >
-            <Text className="font-sans text-[12px] text-text-secondary mb-0.5">Email</Text>
+            <Text className="font-sans text-[12px] text-text-secondary mb-0.5">Email or Username</Text>
             {/* TextInput — AGENTS.md exception */}
             <TextInput
               style={styles.textInput}
-              placeholder="alex@gmail.com"
+              placeholder="alexsmith or alex@gmail.com"
               placeholderTextColor={colors.textSecondary}
-              keyboardType="email-address"
               autoCapitalize="none"
               value={email}
               onChangeText={setEmail}
@@ -268,7 +267,7 @@ export default function SignInScreen() {
           <Text className="font-sans text-body-md text-text-secondary">
             Don&apos;t have an account?{" "}
           </Text>
-          <TouchableOpacity onPress={() => router.replace("/(auth)/sign-up")} activeOpacity={0.7}>
+          <TouchableOpacity onPress={() => router.push("/(auth)/sign-up")} activeOpacity={0.7}>
             <Text className="font-semibold text-body-md text-lingua-purple">Sign up</Text>
           </TouchableOpacity>
         </View>
