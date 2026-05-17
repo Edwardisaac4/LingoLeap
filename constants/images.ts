@@ -5,6 +5,12 @@ import earth from "@/assets/images/earth.png";
 import palace from "@/assets/images/palace.png";
 import streakFire from "@/assets/images/streak-fire.png";
 import treasure from "@/assets/images/treasure.png";
+import flagEs from "@/assets/images/flag-es.png";
+import flagFr from "@/assets/images/flag-fr.png";
+import flagJa from "@/assets/images/flag-ja.png";
+import flagDe from "@/assets/images/flag-de.png";
+import flagIt from "@/assets/images/flag-it.png";
+import flagPt from "@/assets/images/flag-pt.png";
 
 export const images = {
   mascotWelcome,
@@ -14,4 +20,11 @@ export const images = {
   palace,
   streakFire,
   treasure,
+  flagEs,
+  flagFr,
+  flagJa,
+  flagDe,
+  flagIt,
+  flagPt,
 };
+

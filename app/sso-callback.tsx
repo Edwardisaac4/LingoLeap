@@ -3,6 +3,7 @@ import { View, ActivityIndicator } from "react-native";
 import { useRouter } from "expo-router";
 import { useAuth } from "@clerk/expo";
 import { colors } from "@/theme";
+import { useLanguageStore } from "@/store/languageStore";
 
 // ─── SSO Callback ─────────────────────────────────────────────────────────────
 // Clerk redirects to this route after a browser-based OAuth flow.
@@ -11,16 +12,21 @@ import { colors } from "@/theme";
 
 export default function SSOCallback() {
   const { isSignedIn, isLoaded } = useAuth();
+  const { selectedLanguage, _hasHydrated } = useLanguageStore();
   const router = useRouter();
 
   useEffect(() => {
-    if (!isLoaded) return;
+    if (!isLoaded || !_hasHydrated) return;
     if (isSignedIn) {
-      router.replace("/home");
+      if (!selectedLanguage) {
+        router.replace("/language-select");
+      } else {
+        router.replace("/home");
+      }
     } else {
       router.replace("/onboarding");
     }
-  }, [isLoaded, isSignedIn, router]);
+  }, [isLoaded, _hasHydrated, isSignedIn, selectedLanguage, router]);
 
   return (
     <View style={{ flex: 1, justifyContent: "center", alignItems: "center", backgroundColor: colors.background }}>
