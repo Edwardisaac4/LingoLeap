@@ -78,7 +78,7 @@ export default function SignUpScreen() {
       if (result.status === "complete") {
         await setActive!({ session: result.createdSessionId });
         setModalVisible(false);
-        router.replace("/home");
+        router.replace("/language-select");
       } else {
         console.error("Sign-up not complete after verification:", result.status, result.missingFields);
         setVerifyError(`Incomplete (${result.status}). Missing: ${result.missingFields?.join(', ')}`);

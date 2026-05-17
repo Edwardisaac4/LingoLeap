@@ -41,9 +41,9 @@ export function useOAuthFlow() {
 
         if (sessionId && setActive) {
           await setActive({ session: sessionId });
-          // index.tsx reads isSignedIn and redirects to /home automatically,
+          // index.tsx reads isSignedIn and redirects to /language-select automatically,
           // but we push directly here to be explicit
-          router.replace("/home");
+          router.replace("/language-select");
         }
         // null sessionId = user cancelled or flow is incomplete — do nothing
       } catch (err: unknown) {

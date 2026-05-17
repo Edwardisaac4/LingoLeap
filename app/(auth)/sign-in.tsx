@@ -50,7 +50,7 @@ export default function SignInScreen() {
       if (result.status === "complete") {
         // No MFA — activate session directly
         await setActive!({ session: result.createdSessionId });
-        router.replace("/home");
+        router.replace("/language-select" as any);
       } else if (result.status === "needs_second_factor") {
         // MFA required — show verification modal
         setModalVisible(true);
@@ -88,7 +88,7 @@ export default function SignInScreen() {
       if (result.status === "complete") {
         await setActive!({ session: result.createdSessionId });
         setModalVisible(false);
-        router.replace("/home");
+        router.replace("/language-select" as any);
       } else {
         console.error("Sign-in verification not complete:", result.status);
         setVerifyError(`Incomplete (${result.status}). Please try again.`);
