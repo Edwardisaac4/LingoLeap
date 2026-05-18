@@ -22,7 +22,7 @@ export function CustomTabBar({ state, descriptors, navigation }: BottomTabBarPro
     // Animate the indicator to the center of the active tab
     const targetX = activeIndex * tabWidth + (tabWidth - CIRCLE_SIZE) / 2;
     translateX.value = withTiming(targetX, { duration: 250 });
-  }, [activeIndex, tabWidth]);
+  }, [activeIndex, tabWidth, translateX]);
 
   const animatedStyle = useAnimatedStyle(() => {
     return {

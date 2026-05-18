@@ -14,6 +14,7 @@ export type Unit = {
   title: string;
   description: string;
   order: number;
+  bannerImage?: any; // Custom illustration for unit header banner
 };
 
 export type VocabularyItem = {
@@ -52,4 +53,5 @@ export type Lesson = {
   vocabulary: VocabularyItem[];
   phrases: PhraseItem[];
   activities: Activity[];
+  image?: any; // Custom icon/image on the right of the lesson card (e.g. cafe table)
 };

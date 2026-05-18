@@ -11,6 +11,8 @@ import flagJa from "@/assets/images/flag-ja.png";
 import flagDe from "@/assets/images/flag-de.png";
 import flagIt from "@/assets/images/flag-it.png";
 import flagPt from "@/assets/images/flag-pt.png";
+import cafeUnitHeader from "@/assets/images/cafe-unit-header.png";
+import cafeTableIcon from "@/assets/images/cafe-table-icon.png";
 
 export const images = {
   mascotWelcome,
@@ -26,5 +28,7 @@ export const images = {
   flagDe,
   flagIt,
   flagPt,
+  cafeUnitHeader,
+  cafeTableIcon,
 };
 
