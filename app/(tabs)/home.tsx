@@ -123,7 +123,7 @@ export default function HomeScreen() {
           className="mx-6 mt-3 mb-4 p-6 rounded-[24px] bg-[#FFF8F2] flex-row items-center justify-between"
         >
           <View className="flex-1 pr-2 flex-col">
-            <Text className="text-slate-500 font-bold text-[11px] tracking-wider uppercase mb-1">
+            <Text className="text-slate-500 font-bold text-caption tracking-wider uppercase mb-1">
               Daily goal
             </Text>
             <View className="flex-row items-baseline mt-1">
